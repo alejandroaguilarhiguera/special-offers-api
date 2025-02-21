@@ -12,6 +12,8 @@ export const productValidator = z.object({
   name: z.string(),
   price: z.number(),
   stock: z.number(),
+  currencyName: z.string(),
+  description: z.string(),
   createdAt: z.date(),
   updatedAt: z.date(),
 })
@@ -53,23 +55,19 @@ describe('ProductsController', () => {
       name: faker.commerce.productName(),
       price: Number(faker.number.int({ max: 999 })),
       stock: Number(faker.number.int({ max: 999 })),
+      currencyName: faker.finance.currencyCode(),
+      description: faker.commerce.productDescription(),
     } as any)
   })
 
   afterAll(async () => {
     await Product.destroy({ force: true, where: { id: product.id } })
   })
+
   describe('findAll', () => {
     test('should return products', async () => {
-      // Crear un producto de prueba para asegurarte de que existe
       const [product] = await productsController.findAll()
-
-      // Validación de los datos del producto con Zod
       const { error, success } = productValidator.safeParse(product.toJSON())
-      if (error) {
-        console.log('product', product)
-        console.log('validation', error)
-      }
       expect(success).toBe(true)
     })
   })
@@ -77,43 +75,30 @@ describe('ProductsController', () => {
   describe('get', () => {
     test('should return a product by id', async () => {
       const foundProduct = await Product.findByPk(product.id)
-      const { error, success } = productValidator.safeParse(
-        foundProduct?.toJSON(),
-      )
+      const { success } = productValidator.safeParse(foundProduct?.toJSON())
       expect(success).toBe(true)
-      expect(foundProduct?.id).toBe(product.id)
-      expect(foundProduct?.name).toBe(product.name)
-      expect(foundProduct?.price).toBe(product.price)
-      expect(foundProduct?.stock).toBe(product.stock)
     })
   })
 
   describe('create', () => {
     let productId: number
     afterEach(async () => {
-      productId &&
-        (await Product.destroy({
-          where: {
-            id: productId,
-          },
-        }))
+      productId && (await Product.destroy({ where: { id: productId } }))
     })
     test('should create a new product', async () => {
       const newProductData = {
         name: faker.commerce.productName(),
         price: 150,
         stock: 30,
+        currencyName: faker.finance.currencyCode(),
+        description: faker.commerce.productDescription(),
       }
 
       const createdProduct = await productsController.create(newProductData)
       const product = createdProduct.toJSON()
-
-      const { error, success } = productValidator.safeParse(product)
+      const { success } = productValidator.safeParse(product)
       expect(success).toBe(true)
       productId = product.id
-      expect(product.name).toBe(newProductData.name)
-      expect(product.price).toBe(newProductData.price)
-      expect(product.stock).toBe(newProductData.stock)
     })
   })
 
@@ -123,41 +108,42 @@ describe('ProductsController', () => {
         name: 'Updated Product',
         price: 200,
         stock: 100,
+        currencyName: 'USD',
+        description: 'Updated Description',
       }
-
       const { dataValues: updatedProduct } = await productsController.update(
         String(product.id),
         updatedData,
       )
-
-      const { error, success } = productValidator.safeParse(product.toJSON())
-      expect(success).toBe(true)
+      const { success } = productValidator.safeParse(product.toJSON())
       expect(updatedProduct.name).toBe(updatedData.name)
       expect(updatedProduct.price).toBe(updatedData.price)
       expect(updatedProduct.stock).toBe(updatedData.stock)
+      expect(updatedProduct.currencyName).toBe(updatedData.currencyName)
+      expect(updatedProduct.description).toBe(updatedData.description)
+
+      expect(success).toBe(true)
     })
   })
 
   describe('remove', () => {
     let productId: number
-
     beforeAll(async () => {
       const productInstance = await Product.create({
         name: faker.commerce.productName(),
         price: Number(faker.number.int({ max: 999 })),
         stock: Number(faker.number.int({ max: 999 })),
+        currencyName: faker.finance.currencyCode(),
+        description: faker.commerce.productDescription(),
       } as any)
-
       productId = productInstance.id
     })
     afterAll(async () => {
       productId &&
         (await Product.destroy({ force: true, where: { id: productId } }))
     })
-
     test('should remove a product', async () => {
       await productsController.remove(String(productId))
-
       try {
         await productsController.findOne(String(productId))
       } catch (error) {

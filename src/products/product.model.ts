@@ -19,11 +19,17 @@ export class Product extends Model<Product> {
   @Column({ type: DataTypes.STRING, allowNull: false })
   name: string
 
+  @Column({ type: DataTypes.TEXT, allowNull: true })
+  description: string
+
   @Column({ type: DataTypes.FLOAT, allowNull: true })
   price: number
 
   @Column({ type: DataTypes.INTEGER, allowNull: true })
   stock: number
+
+  @Column({ type: DataTypes.STRING, allowNull: false, field: 'currency_name' })
+  currencyName: string
 
   @Column({ field: 'created_at' })
   @CreatedAt

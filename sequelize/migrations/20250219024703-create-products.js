@@ -10,16 +10,25 @@ module.exports = {
         allowNull: false,
       },
       name: {
-        type: Sequelize.STRING,
+        type: Sequelize.STRING(254),
         allowNull: false,
+      },
+      description: {
+        type: Sequelize.TEXT,
       },
       price: {
         type: Sequelize.FLOAT,
+        allowNull: true,
+      },
+      currency_name: {
+        type: Sequelize.STRING('10'),
         allowNull: false,
+        defaultValue: 'MXN',
       },
       stock: {
         type: Sequelize.INTEGER,
         allowNull: false,
+        defaultValue: 0,
       },
       created_at: {
         type: Sequelize.DATE,
